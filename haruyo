@@ -1,0 +1,46 @@
+#!/usr/bin/env ruby
+
+# -*- coding: utf-8 -*-
+
+def enc(str)
+  str
+    .encode("UTF-16be", :invalid=>:replace, :replace=>"?")
+    .encode('UTF-8')
+    .gsub(/dr/i,'med')
+end
+
+def read_page(str)
+  enc(str.to_a.join).split("</dd>").map do |line|
+    match = /<dt>.*<\/dt>[\s\n]*<dd>[\s\n]*.*[\s\n]*/.match(line).to_s
+    key   = /<dt>.*<\/dt>/.match(match).to_s.gsub(/<(d|\/d)t>/, "")
+    value = /<dd>[\s\n]*.*/
+      .match(match)
+      .to_s
+      .gsub(/(<dd>|[\n])/, "")
+      .strip
+    [key, value]
+  end 
+end  
+
+tokens = read_page(File.open("sample.webarchive", "r:UTF-8"))
+
+options = ARGV.select {|arg| /\-.*/.match(arg) }
+values  = ARGV.select {|arg| !/\-.*/.match(arg) }
+
+case options.first
+when "-h"
+when "-l"
+  tokens.each do |k, v|
+    puts "#{k}: #{v}"
+  end
+when "-c"
+  # paste one by one
+  tokens.each do |k, v|
+    print "[#{k}] #{v}"
+    system "echo #{v} | pbcopy"
+    $stdin.gets.chomp
+  end
+when "-p"
+  # paste tab-separated strip
+else
+end
