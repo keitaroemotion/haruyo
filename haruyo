@@ -22,10 +22,15 @@ def read_page(str)
   end 
 end  
 
-tokens = read_page(File.open("sample.webarchive", "r:UTF-8"))
 
 options = ARGV.select {|arg| /\-.*/.match(arg) }
 values  = ARGV.select {|arg| !/\-.*/.match(arg) }
+
+files    = values.select{|value| File.exist?(value)}
+
+abort "\nyou need file input\n\n" if files.size == 0
+
+tokens = read_page(File.open(files[0], "r:UTF-8"))
 
 case options.first
 when "-h"
